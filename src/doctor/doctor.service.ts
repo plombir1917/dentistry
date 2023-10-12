@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Doctor } from './entities/doctor.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class DoctorService {
+  constructor(
+    @InjectRepository(Doctor)
+    private readonly doctorRepository: Repository<Doctor>,
+  ) {}
   create(createDoctorDto: CreateDoctorDto) {
-    return 'This action adds a new doctor';
+    const newDoctor = this.doctorRepository.create(createDoctorDto);
+    return this.doctorRepository.save(newDoctor);
   }
 
-  findAll() {
-    return `This action returns all doctor`;
+  async findAll() {
+    const doctors = await this.doctorRepository.find();
+    if (!doctors.length) {
+      throw new NotFoundException('Ещё нет ни одного доктора');
+    }
+    return doctors;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} doctor`;
+  async findOne(id: number) {
+    const existDoctor = await this.doctorRepository.findOneBy({ id });
+    if (!existDoctor) {
+      throw new NotFoundException('Такого доктора не существует!');
+    }
+    return existDoctor;
   }
 
-  update(id: number, updateDoctorDto: UpdateDoctorDto) {
-    return `This action updates a #${id} doctor`;
+  async update(id: number, updateDoctorDto: UpdateDoctorDto) {
+    await this.findOne(id);
+    if (!Object.keys(updateDoctorDto).length) {
+      throw new BadRequestException('Неверные данные!');
+    }
+    await this.doctorRepository.update(id, updateDoctorDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} doctor`;
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.doctorRepository.delete(id);
+    return `Доктор успешно удалён`;
   }
 }

@@ -10,7 +10,7 @@ export class Doctor {
   name: string;
 
   @Column()
-  phone: number;
+  phone: string;
 
   @Column()
   email: string;
