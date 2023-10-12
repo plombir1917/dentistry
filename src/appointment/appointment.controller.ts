@@ -17,7 +17,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
-  @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post()
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentService.create(createAppointmentDto);
@@ -33,7 +33,9 @@ export class AppointmentController {
     return this.appointmentService.findOne(+id);
   }
 
-  @UsePipes(new ValidationPipe())
+  @UsePipes(
+    new ValidationPipe({ whitelist: true, skipMissingProperties: true }),
+  )
   @Patch(':id')
   update(
     @Param('id') id: string,

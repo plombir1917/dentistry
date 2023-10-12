@@ -30,6 +30,10 @@ export class AppointmentService {
   }
 
   async update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
+    const existAppointment = await this.findOne(id);
+    if (!existAppointment || !Object.keys(updateAppointmentDto).length) {
+      throw new NotFoundException('Такой записи не существует!');
+    }
     await this.appointmentRepository.update(id, updateAppointmentDto);
     return this.findOne(id);
   }
