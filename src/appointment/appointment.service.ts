@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Repository } from 'typeorm';
@@ -25,24 +29,26 @@ export class AppointmentService {
     return appointments;
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
+    const existAppointment = await this.appointmentRepository.findOneBy({ id });
+    if (!existAppointment) {
+      throw new NotFoundException('Такой записи не существует');
+    }
     return this.appointmentRepository.findOneBy({ id });
   }
 
   async update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
-    const existAppointment = await this.findOne(id);
-    if (!existAppointment || !Object.keys(updateAppointmentDto).length) {
-      throw new NotFoundException('Такой записи не существует!');
+    await this.findOne(id);
+    if (!Object.keys(updateAppointmentDto).length) {
+      throw new BadRequestException('Неверные данные!');
     }
     await this.appointmentRepository.update(id, updateAppointmentDto);
     return this.findOne(id);
   }
 
   async remove(id: number) {
-    const existAppointment = await this.findOne(id);
-    if (existAppointment) {
-      await this.appointmentRepository.delete(id);
-      return 'Запись успешно удалена!';
-    } else throw new NotFoundException('Такой записи не существует!');
+    await this.findOne(id);
+    await this.appointmentRepository.delete(id);
+    return 'Запись успешно удалена!';
   }
 }

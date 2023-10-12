@@ -1,26 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Card } from './entities/card.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CardService {
+  constructor(
+    @InjectRepository(Card) private readonly cardRepository: Repository<Card>,
+  ) {}
   create(createCardDto: CreateCardDto) {
-    return 'This action adds a new card';
+    const newCard = this.cardRepository.create(createCardDto);
+    return this.cardRepository.save(newCard);
   }
 
-  findAll() {
-    return `This action returns all card`;
+  async findAll() {
+    const cards = await this.cardRepository.find();
+    if (!cards.length) {
+      throw new NotFoundException('Ещё нет ни одной карточки!');
+    }
+    return this.cardRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} card`;
+  async findOne(id: number) {
+    const existCard = await this.cardRepository.findOneBy({ id });
+    if (!existCard) {
+      throw new NotFoundException('Такой карточки не существует!');
+    }
+    return existCard;
   }
 
-  update(id: number, updateCardDto: UpdateCardDto) {
-    return `This action updates a #${id} card`;
+  async update(id: number, updateCardDto: UpdateCardDto) {
+    await this.findOne(id);
+    if (!Object.keys(updateCardDto).length) {
+      throw new BadRequestException('Неверные данные!');
+    }
+    await this.cardRepository.update(id, updateCardDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} card`;
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.cardRepository.delete(id);
+    return 'Карточка успешно удалена!';
   }
 }
