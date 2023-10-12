@@ -1,26 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { Repository } from 'typeorm';
+import { Appointment } from './entities/appointment.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AppointmentService {
+  constructor(
+    @InjectRepository(Appointment)
+    private readonly appointmentRepository: Repository<Appointment>,
+  ) {}
   create(createAppointmentDto: CreateAppointmentDto) {
-    return 'This action adds a new appointment';
+    const newAppointment =
+      this.appointmentRepository.create(createAppointmentDto);
+    return this.appointmentRepository.save(newAppointment);
   }
 
-  findAll() {
-    return `This action returns all appointment`;
+  async findAll() {
+    const appointments = await this.appointmentRepository.find();
+    if (!appointments.length) {
+      throw new NotFoundException('Пока нет ни одной записи!');
+    }
+    return appointments;
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} appointment`;
+    return this.appointmentRepository.findOneBy({ id });
   }
 
-  update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
-    return `This action updates a #${id} appointment`;
+  async update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
+    await this.appointmentRepository.update(id, updateAppointmentDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} appointment`;
+  async remove(id: number) {
+    const existAppointment = await this.findOne(id);
+    if (existAppointment) {
+      await this.appointmentRepository.delete(id);
+      return 'Запись успешно удалена!';
+    } else throw new NotFoundException('Такой записи не существует!');
   }
 }
