@@ -23,7 +23,7 @@ export class DoctorService {
   async findAll() {
     const doctors = await this.doctorRepository.find();
     if (!doctors.length) {
-      throw new NotFoundException('Ещё нет ни одного доктора');
+      throw new NotFoundException('Нет ни одного доктора');
     }
     return doctors;
   }

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -7,6 +17,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
 
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post()
   create(@Body() createServiceDto: CreateServiceDto) {
     return this.serviceService.create(createServiceDto);
@@ -22,6 +33,9 @@ export class ServiceController {
     return this.serviceService.findOne(+id);
   }
 
+  @UsePipes(
+    new ValidationPipe({ whitelist: true, skipMissingProperties: true }),
+  )
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
     return this.serviceService.update(+id, updateServiceDto);

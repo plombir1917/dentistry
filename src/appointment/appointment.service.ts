@@ -24,7 +24,7 @@ export class AppointmentService {
   async findAll() {
     const appointments = await this.appointmentRepository.find();
     if (!appointments.length) {
-      throw new NotFoundException('Пока нет ни одной записи!');
+      throw new NotFoundException('Нет ни одной записи!');
     }
     return appointments;
   }

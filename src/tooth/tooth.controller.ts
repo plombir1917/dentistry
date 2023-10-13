@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ToothService } from './tooth.service';
 import { CreateToothDto } from './dto/create-tooth.dto';
 import { UpdateToothDto } from './dto/update-tooth.dto';
@@ -7,6 +17,7 @@ import { UpdateToothDto } from './dto/update-tooth.dto';
 export class ToothController {
   constructor(private readonly toothService: ToothService) {}
 
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post()
   create(@Body() createToothDto: CreateToothDto) {
     return this.toothService.create(createToothDto);
@@ -22,6 +33,9 @@ export class ToothController {
     return this.toothService.findOne(+id);
   }
 
+  @UsePipes(
+    new ValidationPipe({ whitelist: true, skipMissingProperties: true }),
+  )
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateToothDto: UpdateToothDto) {
     return this.toothService.update(+id, updateToothDto);

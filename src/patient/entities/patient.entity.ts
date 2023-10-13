@@ -10,12 +10,12 @@ export class Patient {
   name: string;
 
   @Column()
-  phone: number;
+  phone: string;
 
   @Column()
   insurance: number;
 
-  @Column()
+  @Column({ type: 'timestamp' })
   birth: Date;
 
   @OneToMany(() => Appointment, (appointment) => appointment.patient)

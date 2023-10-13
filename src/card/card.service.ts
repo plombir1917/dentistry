@@ -22,7 +22,7 @@ export class CardService {
   async findAll() {
     const cards = await this.cardRepository.find();
     if (!cards.length) {
-      throw new NotFoundException('Ещё нет ни одной карточки!');
+      throw new NotFoundException('Нет ни одной карточки!');
     }
     return this.cardRepository.find();
   }

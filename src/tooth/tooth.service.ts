@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateToothDto } from './dto/create-tooth.dto';
 import { UpdateToothDto } from './dto/update-tooth.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Tooth } from './entities/tooth.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ToothService {
+  constructor(
+    @InjectRepository(Tooth)
+    private readonly toothRepository: Repository<Tooth>,
+  ) {}
   create(createToothDto: CreateToothDto) {
-    return 'This action adds a new tooth';
+    const newTooth = this.toothRepository.create(createToothDto);
+    return this.toothRepository.save(newTooth);
   }
 
-  findAll() {
-    return `This action returns all tooth`;
+  async findAll() {
+    const teeth = await this.toothRepository.find();
+    if (!teeth.length) {
+      throw new NotFoundException('Нет ни одного зуба!');
+    }
+    return teeth;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tooth`;
+  async findOne(id: number) {
+    const existTooth = await this.toothRepository.findOneBy({ id });
+    if (!existTooth) {
+      throw new NotFoundException('Нет такого зуба!');
+    }
+    return existTooth;
   }
 
-  update(id: number, updateToothDto: UpdateToothDto) {
-    return `This action updates a #${id} tooth`;
+  async update(id: number, updateToothDto: UpdateToothDto) {
+    await this.findOne(id);
+    if (!Object.keys(updateToothDto).length) {
+      throw new BadRequestException('Неверные данные!');
+    }
+    await this.toothRepository.update(id, updateToothDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} tooth`;
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.toothRepository.delete(id);
+    return `Зуб успешно удалён`;
   }
 }
